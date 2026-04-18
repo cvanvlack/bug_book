@@ -90,6 +90,11 @@ textarea {
   font-size: 0.95rem;
 }
 
+.status:focus {
+  outline: 3px solid rgba(31, 122, 140, 0.16);
+  outline-offset: 2px;
+}
+
 .status-neutral {
   background: var(--neutral-bg);
   color: var(--neutral-text);
@@ -119,6 +124,13 @@ textarea {
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 18px;
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 18px;
 }
 
 form {
@@ -284,6 +296,72 @@ textarea {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.diagnostics {
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  background: #f9fbfd;
+}
+
+.diagnostics-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.diagnostics-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.diagnostics-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid #d7e1ea;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.diagnostics-item-title {
+  font-weight: 700;
+}
+
+.diagnostics-item-message {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.diagnostics-item-success {
+  border-color: #c1ead0;
+  background: var(--success-bg);
+}
+
+.diagnostics-item-success .diagnostics-item-message {
+  color: var(--success-text);
+}
+
+.diagnostics-item-error {
+  border-color: #f5c5c0;
+  background: var(--error-bg);
+}
+
+.diagnostics-item-error .diagnostics-item-message {
+  color: var(--error-text);
+}
+
+.diagnostics-item-neutral {
+  border-color: #d9e8f3;
+  background: var(--neutral-bg);
+}
+
+.diagnostics-item-neutral .diagnostics-item-message {
+  color: var(--neutral-text);
 }
 
 code {

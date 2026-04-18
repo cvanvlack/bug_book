@@ -18,10 +18,16 @@
     return new Date(now.getTime() - tzOffsetMs).toISOString().slice(0, 10);
   }
 
-  function setStatus(message, type) {
+  function setStatus(message, type, options) {
+    var nextOptions = options || {};
+
     statusEl.className = "status";
     statusEl.classList.add("status-" + type);
     statusEl.textContent = message;
+
+    if (nextOptions.scrollIntoView) {
+      focusStatus();
+    }
   }
 
   function setSubmitting(nextValue) {
@@ -160,37 +166,20 @@
     return "";
   }
 
-  async function postJsonWithTimeout(url, payload, timeoutMs) {
-    var controller = new AbortController();
-    var timeoutId = window.setTimeout(function () {
-      controller.abort();
-    }, timeoutMs);
+  function focusStatus() {
+    statusEl.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
 
-    try {
-      return await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-    } finally {
-      window.clearTimeout(timeoutId);
-    }
-  }
-
-  async function parseJsonResponse(response) {
-    var rawText = await response.text();
-
-    if (!rawText) {
-      throw new Error("The sheet endpoint returned an empty response.");
-    }
-
-    try {
-      return JSON.parse(rawText);
-    } catch (error) {
-      throw new Error("The sheet endpoint returned invalid JSON.");
+    if (typeof statusEl.focus === "function") {
+      try {
+        statusEl.focus({
+          preventScroll: true,
+        });
+      } catch (error) {
+        statusEl.focus();
+      }
     }
   }
 
@@ -209,7 +198,10 @@
     if (!config.endpointUrl || !config.apiKey) {
       setStatus(
         "Missing setup. Open Settings to add your Apps Script endpoint URL and API key for this browser.",
-        "warning"
+        "warning",
+        {
+          scrollIntoView: true,
+        }
       );
       return;
     }
@@ -217,7 +209,10 @@
     if (navigator.onLine === false) {
       setStatus(
         "Could not save entry. An internet connection is required.",
-        "error"
+        "error",
+        {
+          scrollIntoView: true,
+        }
       );
       return;
     }
@@ -226,7 +221,9 @@
     var validationMessage = validatePayload(payload);
 
     if (validationMessage) {
-      setStatus(validationMessage, "error");
+      setStatus(validationMessage, "error", {
+        scrollIntoView: true,
+      });
       return;
     }
 
@@ -234,12 +231,19 @@
     setStatus("Saving entry...", "neutral");
 
     try {
-      var response = await postJsonWithTimeout(
+      var result = await settingsStore.requestJson(
         config.endpointUrl,
-        payload,
-        config.requestTimeoutMs
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          timeoutMs: config.requestTimeoutMs,
+        }
       );
-      var responseBody = await parseJsonResponse(response);
+      var response = result.response;
+      var responseBody = result.body;
 
       if (!response.ok || !responseBody.ok) {
         throw new Error(
@@ -251,21 +255,40 @@
       resetForm();
       setStatus(
         "Saved entry for " + (responseBody.entryDate || payload.entryDate) + ".",
-        "success"
+        "success",
+        {
+          scrollIntoView: true,
+        }
       );
     } catch (error) {
       if (error.name === "AbortError") {
         setStatus(
-          "Could not save entry. The request timed out after " +
-            Math.round(config.requestTimeoutMs / 1000) +
-            " seconds.",
-          "error"
+          "Bug Book could not confirm whether the entry saved before the request timed out. Check your sheet before retrying to avoid duplicates.",
+          "warning",
+          {
+            scrollIntoView: true,
+          }
+        );
+      } else if (
+        error.code === "NETWORK" ||
+        error.code === "EMPTY_RESPONSE" ||
+        error.code === "INVALID_JSON"
+      ) {
+        setStatus(
+          "Bug Book could not confirm whether the entry saved. Check your sheet before retrying to avoid duplicates.",
+          "warning",
+          {
+            scrollIntoView: true,
+          }
         );
       } else {
         setStatus(
           error.message ||
             "Could not save entry. Please check your connection and try again.",
-          "error"
+          "error",
+          {
+            scrollIntoView: true,
+          }
         );
       }
     } finally {

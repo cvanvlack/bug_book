@@ -41,6 +41,12 @@
     }
   }
 
+  function createRequestError(code, message) {
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
   function getStoredSettings() {
     var storage = getStorage();
     if (!storage) {
@@ -116,6 +122,87 @@
     return Boolean(settings.endpointUrl && settings.apiKey);
   }
 
+  function buildDiagnosticsUrl(endpointUrl, apiKey) {
+    var url = new URL(endpointUrl);
+
+    if (apiKey) {
+      url.searchParams.set("apiKey", apiKey);
+    }
+
+    return url.toString();
+  }
+
+  async function requestJson(url, options) {
+    var requestOptions = options || {};
+    var method = requestOptions.method || "GET";
+    var timeoutMs =
+      typeof requestOptions.timeoutMs === "number"
+        ? requestOptions.timeoutMs
+        : DEFAULT_CONFIG.requestTimeoutMs;
+    var controller = new AbortController();
+    var timeoutId = window.setTimeout(function () {
+      controller.abort();
+    }, timeoutMs);
+    var response;
+    var responseText;
+
+    try {
+      try {
+        response = await fetch(url, {
+          method: method,
+          headers: requestOptions.headers || {},
+          body: requestOptions.body,
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw error;
+        }
+
+        throw createRequestError(
+          "NETWORK",
+          "Could not reach the Bug Book endpoint."
+        );
+      }
+
+      responseText = await response.text();
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+
+    if (!responseText) {
+      throw createRequestError(
+        "EMPTY_RESPONSE",
+        "The Bug Book endpoint returned an empty response."
+      );
+    }
+
+    try {
+      return {
+        response: response,
+        body: JSON.parse(responseText),
+      };
+    } catch (error) {
+      throw createRequestError(
+        "INVALID_JSON",
+        "The Bug Book endpoint returned invalid JSON."
+      );
+    }
+  }
+
+  async function runSetupDiagnostics(rawSettings, timeoutMs) {
+    var settings = normalizeStoredSettings(rawSettings);
+    var validationMessage = validateStoredSettings(settings);
+
+    if (validationMessage) {
+      throw new Error(validationMessage);
+    }
+
+    return requestJson(buildDiagnosticsUrl(settings.endpointUrl, settings.apiKey), {
+      timeoutMs: timeoutMs,
+    });
+  }
+
   window.BugBookSettingsStore = {
     getAppConfig: getAppConfig,
     getStoredSettings: getStoredSettings,
@@ -123,5 +210,7 @@
     saveStoredSettings: saveStoredSettings,
     clearStoredSettings: clearStoredSettings,
     hasRequiredSettings: hasRequiredSettings,
+    requestJson: requestJson,
+    runSetupDiagnostics: runSetupDiagnostics,
   };
 })();

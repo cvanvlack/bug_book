@@ -21,7 +21,8 @@
         <h1>Connect your sheet</h1>
         <p class="hero-copy">
           Add your Apps Script endpoint URL and API key. Bug Book stores them
-          only in this browser on this device.
+          only in this browser on this device, then runs a live setup check so
+          you can confirm the backend is ready.
         </p>
       </section>
 
@@ -31,8 +32,20 @@
           class="status status-neutral"
           role="status"
           aria-live="polite"
+          tabindex="-1"
         >
           Add your Apps Script endpoint URL and API key to finish setup.
+        </div>
+
+        <div id="settings-status-actions" class="status-actions" hidden>
+          <a class="button-link button-secondary" href="./index.html">
+            Back to entry form
+          </a>
+        </div>
+
+        <div id="settings-diagnostics" class="diagnostics" hidden>
+          <h2 class="diagnostics-title">Setup check</h2>
+          <ul id="settings-diagnostics-list" class="diagnostics-list"></ul>
         </div>
 
         <form id="settings-form" novalidate>

@@ -149,8 +149,13 @@ If you want the easiest setup, leave `SHEET_NAME` out and keep your tab named
    - the Apps Script web app URL
    - the same API key you used for `EXPECTED_API_KEY`
 4. Click `Save settings`.
-5. Go back to the main page.
-6. Submit a test entry.
+5. Wait for the setup check to finish. A successful check should confirm:
+   - the Apps Script URL is reachable
+   - the API key was accepted
+   - the backend script properties are configured
+   - the spreadsheet and target sheet are ready
+6. Go back to the main page.
+7. Submit a test entry.
 
 If the test works, your entry should appear in the `bug_book` tab in your Google
 Sheet.
@@ -202,6 +207,9 @@ entry_date | score | creative_hours | social_hours | day_description | score_rea
 
 If the `bug_book` tab is empty, the backend will add this header row
 automatically.
+
+If the `bug_book` tab does not exist yet, the backend can create it
+automatically during setup verification or the first successful save.
 
 ### Apps Script request format
 
@@ -259,12 +267,14 @@ Then open [http://localhost:4173](http://localhost:4173).
 
 - Opening the app without saved settings shows a clear setup warning and a link to `Settings`.
 - Saving settings in `settings.html` stores them locally and allows the main form to submit.
+- Saving settings in `settings.html` also runs a setup check and reports whether the URL, API key, backend settings, and sheet are ready.
 - The app opens to a single-screen form.
 - The date defaults to today in local time.
 - Score is limited to `+2`, `+1`, `0`, `-1`, `-2`.
 - Hours accept only non-negative numeric values.
 - Description and score reason are required.
 - Failed submissions keep the form data intact.
-- Successful submissions clear the form and mention the saved date.
+- Successful submissions clear the form, mention the saved date, and scroll the success state into view.
+- Network or timeout failures make it clear when the save result is unknown so you can check the sheet before retrying.
 - One successful online submit appends exactly one row to the target sheet.
 - The app can be installed as a PWA on supported browsers.

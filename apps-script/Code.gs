@@ -15,11 +15,8 @@ var BUG_BOOK_HEADERS = [
 
 var ALLOWED_SCORES = [2, 1, 0, -1, -2];
 
-function doGet() {
-  return jsonResponse_({
-    ok: true,
-    message: "Bug Book Apps Script endpoint is running.",
-  });
+function doGet(e) {
+  return jsonResponse_(runDiagnostics_(e));
 }
 
 function doPost(e) {
@@ -47,6 +44,131 @@ function doPost(e) {
       message: error.message || "Unexpected server error.",
     });
   }
+}
+
+function runDiagnostics_(e) {
+  var parameters = (e && e.parameter) || {};
+  var providedApiKey = stringOrEmpty_(parameters.apiKey);
+  var diagnostics = {
+    endpoint: createCheck_(true, "Apps Script endpoint responded."),
+    scriptProperties: createCheck_(true, "Required script properties are configured."),
+    apiKey: providedApiKey
+      ? createCheck_(true, "API key was accepted.")
+      : createCheck_(true, "No API key was provided for verification.", true),
+    spreadsheet: createCheck_(true, "Spreadsheet opened successfully."),
+    sheet: createCheck_(true, 'Sheet tab "bug_book" is ready.'),
+    headers: createCheck_(true, "Sheet headers are ready for Bug Book entries."),
+  };
+  var properties = PropertiesService.getScriptProperties().getProperties();
+  var spreadsheetId = properties.SPREADSHEET_ID || "";
+  var expectedApiKey = properties.EXPECTED_API_KEY || "";
+  var sheetName = properties.SHEET_NAME || "bug_book";
+  var spreadsheet = null;
+  var sheet = null;
+
+  diagnostics.sheet.message = 'Sheet tab "' + sheetName + '" is ready.';
+
+  if (!spreadsheetId && !expectedApiKey) {
+    diagnostics.scriptProperties = createCheck_(
+      false,
+      "Missing script properties SPREADSHEET_ID and EXPECTED_API_KEY."
+    );
+  } else if (!spreadsheetId) {
+    diagnostics.scriptProperties = createCheck_(
+      false,
+      "Missing script property SPREADSHEET_ID."
+    );
+  } else if (!expectedApiKey) {
+    diagnostics.scriptProperties = createCheck_(
+      false,
+      "Missing script property EXPECTED_API_KEY."
+    );
+  }
+
+  if (!diagnostics.scriptProperties.ok) {
+    diagnostics.spreadsheet = createCheck_(
+      false,
+      "Spreadsheet readiness could not be checked until script properties are configured.",
+      true
+    );
+    diagnostics.sheet = createCheck_(
+      false,
+      'Sheet readiness could not be checked until script properties are configured.',
+      true
+    );
+    diagnostics.headers = createCheck_(
+      false,
+      "Sheet headers could not be checked until script properties are configured.",
+      true
+    );
+
+    if (providedApiKey) {
+      diagnostics.apiKey = createCheck_(
+        false,
+        "API key could not be verified until EXPECTED_API_KEY is configured.",
+        true
+      );
+    }
+
+    return buildDiagnosticsResponse_(diagnostics, sheetName);
+  }
+
+  if (providedApiKey && providedApiKey !== expectedApiKey) {
+    diagnostics.apiKey = createCheck_(false, "API key was rejected.");
+  }
+
+  try {
+    spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  } catch (error) {
+    diagnostics.spreadsheet = createCheck_(
+      false,
+      "Spreadsheet could not be opened. Check SPREADSHEET_ID and sharing permissions."
+    );
+    diagnostics.sheet = createCheck_(
+      false,
+      "Sheet readiness could not be checked until the spreadsheet opens.",
+      true
+    );
+    diagnostics.headers = createCheck_(
+      false,
+      "Sheet headers could not be checked until the spreadsheet opens.",
+      true
+    );
+
+    return buildDiagnosticsResponse_(diagnostics, sheetName);
+  }
+
+  try {
+    sheet = spreadsheet.getSheetByName(sheetName);
+    if (sheet) {
+      diagnostics.sheet = createCheck_(
+        true,
+        'Found existing sheet tab "' + sheetName + '".'
+      );
+    } else {
+      sheet = spreadsheet.insertSheet(sheetName);
+      diagnostics.sheet = createCheck_(
+        true,
+        'Created missing sheet tab "' + sheetName + '".'
+      );
+    }
+  } catch (error) {
+    diagnostics.sheet = createCheck_(
+      false,
+      'Sheet tab "' + sheetName + '" could not be opened or created.'
+    );
+    diagnostics.headers = createCheck_(
+      false,
+      "Sheet headers could not be checked until the target sheet is available.",
+      true
+    );
+
+    return buildDiagnosticsResponse_(diagnostics, sheetName);
+  }
+
+  diagnostics.headers = getHeaderDiagnostics_(sheet);
+
+  return buildDiagnosticsResponse_(diagnostics, sheetName);
 }
 
 function getSettings_() {
@@ -160,6 +282,21 @@ function getSheet_(spreadsheetId, sheetName) {
 }
 
 function ensureHeaders_(sheet) {
+  var headerState = inspectHeaderState_(sheet);
+
+  if (headerState.isEmpty) {
+    sheet.getRange(1, 1, 1, BUG_BOOK_HEADERS.length).setValues([BUG_BOOK_HEADERS]);
+    return;
+  }
+
+  if (!headerState.ok) {
+    throw new Error(
+      "Sheet headers do not match the expected Bug Book schema."
+    );
+  }
+}
+
+function inspectHeaderState_(sheet) {
   var headerRange = sheet.getRange(1, 1, 1, BUG_BOOK_HEADERS.length);
   var currentHeaders = headerRange.getValues()[0];
   var isHeaderRowEmpty = currentHeaders.every(function (value) {
@@ -167,19 +304,43 @@ function ensureHeaders_(sheet) {
   });
 
   if (isHeaderRowEmpty) {
-    headerRange.setValues([BUG_BOOK_HEADERS]);
-    return;
+    return {
+      ok: true,
+      isEmpty: true,
+    };
   }
 
   var normalizedHeaders = currentHeaders.map(function (value) {
     return String(value).trim();
   });
 
-  if (normalizedHeaders.join("|") !== BUG_BOOK_HEADERS.join("|")) {
-    throw new Error(
+  return {
+    ok: normalizedHeaders.join("|") === BUG_BOOK_HEADERS.join("|"),
+    isEmpty: false,
+  };
+}
+
+function getHeaderDiagnostics_(sheet) {
+  var headerState = inspectHeaderState_(sheet);
+
+  if (headerState.isEmpty) {
+    return createCheck_(
+      true,
+      "Sheet is empty and ready. Bug Book will add the header row on the first save."
+    );
+  }
+
+  if (!headerState.ok) {
+    return createCheck_(
+      false,
       "Sheet headers do not match the expected Bug Book schema."
     );
   }
+
+  return createCheck_(
+    true,
+    "Sheet headers already match the expected Bug Book schema."
+  );
 }
 
 function buildRow_(entry) {
@@ -241,6 +402,53 @@ function jsonResponse_(body) {
   return ContentService.createTextOutput(JSON.stringify(body)).setMimeType(
     ContentService.MimeType.JSON
   );
+}
+
+function createCheck_(ok, message, skipped) {
+  return {
+    ok: ok,
+    skipped: Boolean(skipped),
+    message: message,
+  };
+}
+
+function buildDiagnosticsResponse_(diagnostics, sheetName) {
+  var checkOrder = [
+    "endpoint",
+    "scriptProperties",
+    "apiKey",
+    "spreadsheet",
+    "sheet",
+    "headers",
+  ];
+  var overallOk = checkOrder.every(function (key) {
+    var check = diagnostics[key];
+    return check.ok || check.skipped;
+  });
+  var summaryMessage = overallOk
+    ? 'Bug Book setup is complete. The "' +
+      sheetName +
+      '" sheet is ready for entries.'
+    : getFirstFailingMessage_(diagnostics, checkOrder) ||
+      "Bug Book setup is not ready yet.";
+
+  return {
+    ok: overallOk,
+    message: summaryMessage,
+    sheetName: sheetName,
+    checks: diagnostics,
+  };
+}
+
+function getFirstFailingMessage_(diagnostics, checkOrder) {
+  for (var index = 0; index < checkOrder.length; index += 1) {
+    var key = checkOrder[index];
+    if (!diagnostics[key].ok && !diagnostics[key].skipped) {
+      return diagnostics[key].message;
+    }
+  }
+
+  return "";
 }
 
 function logError_(error) {
