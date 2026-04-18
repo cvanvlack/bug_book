@@ -153,6 +153,39 @@ If you want the easiest setup, leave `SHEET_NAME` out and keep your tab named
 If the test works, your entry should appear in the `bug_book` tab in your Google
 Sheet.
 
+### Step 10: Keep Bug Book on your phone
+
+If you want Bug Book to feel like a real app and stay easy to find, add it to
+your phone's home screen.
+
+#### On iPhone or iPad
+
+1. Open your live Bug Book site in `Safari`.
+2. Tap the `Share` button.
+3. Scroll down and tap `Add to Home Screen`.
+4. Change the name if you want.
+5. Tap `Add`.
+
+Bug Book will now appear on your home screen like an app. The next time you
+want to use it, tap that icon instead of opening Safari and typing the address
+again.
+
+#### On Android
+
+1. Open your live Bug Book site in `Chrome`.
+2. Tap the browser menu.
+3. Look for `Install app` or `Add to Home screen`.
+4. Tap it, then confirm.
+
+If your phone shows an install prompt at the bottom of the screen, you can use
+that instead.
+
+#### Why this helps
+
+- It keeps Bug Book one tap away.
+- It makes the app feel more like a normal phone app.
+- It is easier to remember to use when the icon stays on your home screen.
+
 ## Reference details
 
 ### Google Sheet schema
