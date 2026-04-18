@@ -44,7 +44,7 @@ This is intentionally “cheap and cheerful.”
 
 Single user only: you.
 
-There is no formal auth. The system will use a shared secret/API key approach embedded in the app and also checked by the Apps Script endpoint. This is not strong security; it is just possession-based protection.
+There is no formal auth. The system will use a shared secret/API key approach saved in browser-local storage for the PWA and also checked by the Apps Script endpoint. This is not strong security; it is just possession-based protection.
 
 ⸻
 
@@ -488,10 +488,10 @@ The GitHub Pages site should:
 * host the static frontend
 * include manifest and icons
 * register service worker
-* expose a simple config file or build-time constant for:
+* provide a settings flow that stores the following locally in the browser:
     * Apps Script endpoint URL
     * shared secret
-    * app name/version
+* keep non-secret app defaults in code (for example app name/version)
 
 GitHub Pages publishes static files pushed from a repository or from a Pages workflow.  ￼
 

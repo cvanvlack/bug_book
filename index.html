@@ -31,8 +31,14 @@
           role="status"
           aria-live="polite"
         >
-          Configure <code>config.js</code> with your Apps Script URL and API key
-          before saving entries.
+          Missing setup. Open Settings to add your Apps Script endpoint URL and
+          API key for this browser.
+        </div>
+
+        <div class="card-actions">
+          <a class="button-link button-secondary" href="./settings.html">
+            Open Settings
+          </a>
         </div>
 
         <form id="entry-form" novalidate>
@@ -124,10 +130,7 @@
       </section>
     </main>
 
-    <script>
-      window.BUG_BOOK_CONFIG = window.BUG_BOOK_CONFIG || {};
-    </script>
-    <script src="./config.js"></script>
+    <script src="./settings-store.js"></script>
     <script src="./app.js" defer></script>
   </body>
 </html>

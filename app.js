@@ -2,25 +2,14 @@
   "use strict";
 
   var ALLOWED_SCORES = [2, 1, 0, -1, -2];
-  var DEFAULT_CONFIG = {
-    endpointUrl: "",
-    apiKey: "",
-    apiVersion: "v1",
-    source: "pwa",
-    appName: "Bug Book",
-    requestTimeoutMs: 15000,
-  };
-
-  var config = Object.assign(
-    {},
-    DEFAULT_CONFIG,
-    window.BUG_BOOK_CONFIG || {}
-  );
+  var settingsStore = window.BugBookSettingsStore;
+  var config = settingsStore.getAppConfig();
   var form = document.getElementById("entry-form");
   var statusEl = document.getElementById("status");
   var submitButton = document.getElementById("submit-button");
   var entryDateInput = document.getElementById("entry-date");
   var isSubmitting = false;
+  var hasAppSetup = settingsStore.hasRequiredSettings(config);
 
   function getTodayLocalDate() {
     var now = new Date();
@@ -37,8 +26,23 @@
 
   function setSubmitting(nextValue) {
     isSubmitting = nextValue;
-    submitButton.disabled = nextValue;
     submitButton.textContent = nextValue ? "Saving..." : "Save entry";
+    submitButton.disabled = nextValue || !hasAppSetup;
+  }
+
+  function refreshSetupState() {
+    config = settingsStore.getAppConfig();
+    hasAppSetup = settingsStore.hasRequiredSettings(config);
+    submitButton.disabled = isSubmitting || !hasAppSetup;
+
+    if (hasAppSetup) {
+      setStatus("Ready to save your next entry.", "neutral");
+    } else {
+      setStatus(
+        "Missing setup. Open Settings to add your Apps Script endpoint URL and API key for this browser.",
+        "warning"
+      );
+    }
   }
 
   function isIsoDate(value) {
@@ -204,7 +208,7 @@
 
     if (!config.endpointUrl || !config.apiKey) {
       setStatus(
-        "Configure config.js with your Apps Script URL and API key before saving entries.",
+        "Missing setup. Open Settings to add your Apps Script endpoint URL and API key for this browser.",
         "warning"
       );
       return;
@@ -285,10 +289,8 @@
     entryDateInput.value = getTodayLocalDate();
     form.addEventListener("submit", handleSubmit);
     registerServiceWorker();
-
-    if (config.endpointUrl && config.apiKey) {
-      setStatus("Ready to save your next entry.", "neutral");
-    }
+    window.addEventListener("pageshow", refreshSetupState);
+    refreshSetupState();
   }
 
   init();

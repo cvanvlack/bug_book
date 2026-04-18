@@ -114,6 +114,13 @@ textarea {
   border-color: #f0dbab;
 }
 
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
 form {
   display: grid;
   gap: 18px;
@@ -129,6 +136,8 @@ legend {
   font-weight: 650;
 }
 
+input[type="url"],
+input[type="password"],
 input[type="date"],
 input[type="number"],
 textarea {
@@ -140,6 +149,8 @@ textarea {
   color: inherit;
 }
 
+input[type="url"]:focus,
+input[type="password"]:focus,
 input[type="date"]:focus,
 input[type="number"]:focus,
 textarea:focus {
@@ -228,7 +239,51 @@ textarea {
 
 .submit-button:disabled {
   opacity: 0.7;
-  cursor: wait;
+  cursor: not-allowed;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 14px;
+  padding: 12px 18px;
+  text-decoration: none;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.button-link:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button-secondary {
+  border: 1px solid #bfccd8;
+  background: #fff;
+  color: var(--text);
+}
+
+.button-secondary:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.button-secondary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.support-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 code {

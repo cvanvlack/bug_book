@@ -5,35 +5,32 @@ time and appending it to Google Sheets through a Google Apps Script web app.
 
 ## What is in this repo
 
-- `index.html`, `styles.css`, `app.js`: the static GitHub Pages frontend
-- `config.js`, `config.example.js`: runtime configuration for the frontend
+- `index.html`, `settings.html`, `styles.css`: the static GitHub Pages frontend
+- `app.js`, `settings.js`, `settings-store.js`: runtime behavior and local settings storage
 - `manifest.webmanifest`, `sw.js`, `icons/`: installable PWA assets
 - `apps-script/Code.gs`, `apps-script/appsscript.json`: the Apps Script backend
 - `design.md`: the original product/design spec
 
 ## Security note
 
-This app uses a shared API key embedded in a static frontend. That is convenient,
-not secure. Anyone who can inspect the deployed site can extract the key. Keep
-the Google Sheet private and treat this as low-risk personal tooling only.
+This app stores the Apps Script endpoint URL and shared API key in browser local
+storage for the current origin and device. That keeps them out of the repo and
+out of the deployed static files, but it is still not strong secret storage.
+Any code running in the browser on that origin can read them. Keep the Google
+Sheet private and treat this as low-risk personal tooling only.
 
 ## Frontend configuration
 
-Edit `config.js` before local testing or deployment:
+When the app opens without saved settings, it will tell you that the Apps
+Script endpoint URL and API key are missing. Open `settings.html` or use the
+Settings link in the main UI, then save:
 
-```js
-window.BUG_BOOK_CONFIG = {
-  endpointUrl: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec",
-  apiKey: "YOUR_SHARED_SECRET",
-  apiVersion: "v1",
-  source: "pwa",
-  appName: "Bug Book",
-  requestTimeoutMs: 15000,
-};
-```
+- your deployed Apps Script web app URL
+- the matching API key you created in Apps Script
 
-`config.example.js` is the same shape with placeholder values so the contract is
-easy to reference.
+Those values are stored locally in the browser for that specific origin. If you
+use both `localhost` and GitHub Pages, you will need to save them once in each
+environment.
 
 ## Google Sheet schema
 
@@ -57,7 +54,8 @@ entry_date | score | creative_hours | social_hours | day_description | score_rea
    - `EXPECTED_API_KEY`
 5. Deploy the script as a web app.
 6. Set execution access so your browser-hosted frontend can call it.
-7. Put the deployed web app URL and matching API key into `config.js`.
+7. Open the Bug Book settings page and save the deployed web app URL and
+   matching API key in your browser.
 
 The endpoint exposes:
 
@@ -93,6 +91,8 @@ python3 -m http.server 4173
 ```
 
 Then open [http://localhost:4173](http://localhost:4173).
+If setup has not been saved for that origin yet, open Settings and add the local
+endpoint URL and API key there.
 
 ## GitHub Pages deployment
 
@@ -100,12 +100,17 @@ This repo is ready to publish as a static site from the repository root.
 
 1. Commit the frontend files to your default branch.
 2. Enable GitHub Pages for the repository and publish from the branch/root.
-3. Make sure the deployed `config.js` contains the live Apps Script URL and key.
+3. Visit the deployed site, open Settings, and save the live Apps Script URL and
+   API key in that browser.
 4. Confirm the page loads over HTTPS and that the manifest and service worker
    are being served successfully.
 
 ## Manual acceptance checklist
 
+- Opening the app without saved settings shows a clear setup warning and a link
+  to Settings.
+- Saving settings in `settings.html` stores them locally and allows the main form
+  to submit.
 - The app opens to a single-screen form.
 - The date defaults to today in local time.
 - Score is limited to `+2`, `+1`, `0`, `-1`, `-2`.

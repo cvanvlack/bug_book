@@ -1,9 +1,12 @@
-const CACHE_NAME = "bug-book-v1";
+const CACHE_NAME = "bug-book-v2";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",
+  "./settings.html",
   "./styles.css",
   "./app.js",
+  "./settings.js",
+  "./settings-store.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/icon-192.svg",
@@ -43,7 +46,10 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate" && url.origin === self.location.origin) {
     event.respondWith(
-      fetch(request).catch(() => caches.match("./index.html"))
+      fetch(request).catch(async () => {
+        const cachedResponse = await caches.match(request);
+        return cachedResponse || caches.match("./index.html");
+      })
     );
     return;
   }

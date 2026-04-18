@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1f7a8c" />
+    <meta
+      name="description"
+      content="Set the Apps Script endpoint URL and API key used by Bug Book on this device."
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Bug Book Settings</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Bug Book setup</p>
+        <h1>Connect your sheet</h1>
+        <p class="hero-copy">
+          Add your Apps Script endpoint URL and API key. Bug Book stores them
+          only in this browser on this device.
+        </p>
+      </section>
+
+      <section class="card">
+        <div
+          id="settings-status"
+          class="status status-neutral"
+          role="status"
+          aria-live="polite"
+        >
+          Add your Apps Script endpoint URL and API key to finish setup.
+        </div>
+
+        <form id="settings-form" novalidate>
+          <div class="field">
+            <label for="endpoint-url">Apps Script endpoint URL</label>
+            <input
+              id="endpoint-url"
+              name="endpointUrl"
+              type="url"
+              inputmode="url"
+              placeholder="https://script.google.com/macros/s/.../exec"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="api-key">API key</label>
+            <input
+              id="api-key"
+              name="apiKey"
+              type="password"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="card-actions">
+            <button
+              id="save-settings-button"
+              class="submit-button"
+              type="submit"
+            >
+              Save settings
+            </button>
+            <button
+              id="clear-settings-button"
+              class="button-link button-secondary"
+              type="button"
+            >
+              Clear saved settings
+            </button>
+            <a class="button-link button-secondary" href="./index.html">
+              Back to entry form
+            </a>
+          </div>
+        </form>
+
+        <p class="support-copy">
+          These values are no longer stored in this repo or served as part of
+          the site's static files. They are still accessible to code running in
+          your browser on this origin, so treat this as convenient local
+          configuration rather than strong secret storage.
+        </p>
+      </section>
+    </main>
+
+    <script src="./settings-store.js"></script>
+    <script src="./settings.js" defer></script>
+  </body>
+</html>
