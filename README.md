@@ -141,7 +141,9 @@ If you want the easiest setup, leave `SHEET_NAME` out and keep your tab named
 
 ### Step 9: Connect the website to the Apps Script
 
-1. Open your live Bug Book site on GitHub Pages.
+1. Open your live Bug Book site on GitHub Pages at
+   `https://YOUR-USERNAME.github.io/bug_book/`, replacing `YOUR-USERNAME`
+   with your GitHub username.
 2. Open `Settings` in the app.
 3. Paste in:
    - the Apps Script web app URL
