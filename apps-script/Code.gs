@@ -52,7 +52,7 @@ function doPost(e) {
 function getSettings_() {
   var properties = PropertiesService.getScriptProperties().getProperties();
   var spreadsheetId = properties.SPREADSHEET_ID || "";
-  var sheetName = properties.SHEET_NAME || "entries";
+  var sheetName = properties.SHEET_NAME || "bug_book";
   var expectedApiKey = properties.EXPECTED_API_KEY || "";
 
   if (!spreadsheetId) {

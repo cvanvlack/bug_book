@@ -1,41 +1,163 @@
 # Bug Book
 
-Bug Book is a lightweight personal PWA for logging one daily journal entry at a
-time and appending it to Google Sheets through a Google Apps Script web app.
+Bug Book is a simple daily journal web app. You open it in your browser, fill
+out one entry, and it saves the result into a Google Sheet.
 
-## What is in this repo
+## How to deploy your own copy
 
-- `index.html`, `settings.html`, `styles.css`: the static GitHub Pages frontend
-- `app.js`, `settings.js`, `settings-store.js`: runtime behavior and local settings storage
-- `manifest.webmanifest`, `sw.js`, `icons/`: installable PWA assets
-- `apps-script/Code.gs`, `apps-script/appsscript.json`: the Apps Script backend
-- `design.md`: the original product/design spec
+This guide is written for a nontechnical user. Follow the steps in order.
 
-## Security note
+### Step 1: Make your own copy on GitHub
 
-This app stores the Apps Script endpoint URL and shared API key in browser local
-storage for the current origin and device. That keeps them out of the repo and
-out of the deployed static files, but it is still not strong secret storage.
-Any code running in the browser on that origin can read them. Keep the Google
-Sheet private and treat this as low-risk personal tooling only.
+1. Open this repo on GitHub.
+2. Click `Fork` in the top-right corner.
+3. Create the fork in your own GitHub account.
 
-## Frontend configuration
+When this is done, you will have your own copy of the project at:
 
-When the app opens without saved settings, it will tell you that the Apps
-Script endpoint URL and API key are missing. Open `settings.html` or use the
-Settings link in the main UI, then save:
+```text
+https://github.com/YOUR-USERNAME/bug_book
+```
 
-- your deployed Apps Script web app URL
-- the matching API key you created in Apps Script
+Helpful links:
 
-Those values are stored locally in the browser for that specific origin. If you
-use both `localhost` and GitHub Pages, you will need to save them once in each
-environment.
+- [Fork a repository](https://docs.github.com/articles/fork-a-repo)
 
-## Google Sheet schema
+### Step 2: Clone your fork to your computer
 
-Create a spreadsheet with a tab named `entries`. The backend will auto-create
-the tab if it does not exist and will seed the header row if the sheet is empty.
+If you want to edit the app before publishing it, the easiest path is GitHub
+Desktop.
+
+1. Install [GitHub Desktop](https://desktop.github.com/).
+2. Open your fork on GitHub.
+3. Click `Code`, then click `Open with GitHub Desktop`.
+4. Choose where to save the project on your computer.
+5. Click `Clone`.
+
+This gives you a local copy of your fork on your computer.
+
+Helpful links:
+
+- [Clone a repository from GitHub to GitHub Desktop](https://docs.github.com/en/desktop/adding-and-cloning-repositories/cloning-a-repository-from-github-to-github-desktop)
+
+### Step 3: Make changes and push them to your GitHub copy
+
+If you do not want to change anything yet, you can skip to Step 4. Your fork is
+already on GitHub.
+
+If you do want to change text, colors, or other files:
+
+1. Open the cloned folder on your computer.
+2. Edit the files you want to change.
+3. Go back to GitHub Desktop.
+4. In the left sidebar, review the changed files.
+5. At the bottom, type a short summary such as `Update app text`.
+6. Click `Commit to main`.
+7. Click `Push origin`.
+
+That sends your local changes to your GitHub fork.
+
+Helpful links:
+
+- [Commit changes in GitHub Desktop](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop)
+- [Push changes to GitHub from GitHub Desktop](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/making-changes-in-a-branch/pushing-changes-to-github-from-github-desktop)
+
+### Step 4: Turn on GitHub Pages
+
+This is what makes your app live on the web.
+
+1. Open your fork on GitHub.
+2. Click `Settings`.
+3. In the left menu, click `Pages`.
+4. Under `Build and deployment`, set `Source` to `Deploy from a branch`.
+5. Choose branch `main`.
+6. Choose folder `/ (root)`.
+7. Click `Save`.
+
+After GitHub finishes publishing, your app will be live at:
+
+```text
+https://YOUR-USERNAME.github.io/bug_book/
+```
+
+Helpful links:
+
+- [Configure a publishing source for your GitHub Pages site](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+
+### Step 5: Create the Google Sheet
+
+1. Open [Google Sheets](https://docs.google.com/spreadsheets/).
+2. Create a new blank spreadsheet.
+3. Rename the first tab to `bug_book`.
+4. Copy the spreadsheet ID from the URL.
+
+The spreadsheet ID is the long text between `/d/` and `/edit`.
+
+Example:
+
+```text
+https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/edit#gid=0
+```
+
+### Step 6: Create the Apps Script project
+
+1. Open [script.google.com](https://script.google.com/).
+2. Click `New project`.
+3. Rename it to something like `Bug Book Backend`.
+4. Delete the sample code in the editor.
+5. Copy everything from `apps-script/Code.gs` in this repo and paste it into the
+   Apps Script editor.
+6. Open `Project Settings`.
+7. Turn on `Show "appsscript.json" manifest file in editor` if needed.
+8. Open `appsscript.json`.
+9. Replace its contents with the file `apps-script/appsscript.json` from this
+   repo.
+
+Helpful links:
+
+- [Create a standalone Apps Script project](https://developers.google.com/apps-script/guides/projects)
+
+### Step 7: Add the Apps Script settings
+
+In Apps Script, stay in `Project Settings` and add these script properties:
+
+- `SPREADSHEET_ID` = your spreadsheet ID
+- `EXPECTED_API_KEY` = a secret key you make up yourself
+- `SHEET_NAME` = optional, defaults to `bug_book`
+
+If you want the easiest setup, leave `SHEET_NAME` out and keep your tab named
+`bug_book`.
+
+### Step 8: Deploy the Apps Script web app
+
+1. In Apps Script, click `Deploy`.
+2. Click `New deployment`.
+3. For deployment type, choose `Web app`.
+4. Set `Execute as` to yourself.
+5. Set `Who has access` to `Anyone`.
+6. Click `Deploy`.
+7. Approve the Google permissions if asked.
+8. Copy the web app URL.
+
+### Step 9: Connect the website to the Apps Script
+
+1. Open your live Bug Book site on GitHub Pages.
+2. Open `Settings` in the app.
+3. Paste in:
+   - the Apps Script web app URL
+   - the same API key you used for `EXPECTED_API_KEY`
+4. Click `Save settings`.
+5. Go back to the main page.
+6. Submit a test entry.
+
+If the test works, your entry should appear in the `bug_book` tab in your Google
+Sheet.
+
+## Reference details
+
+### Google Sheet schema
+
+Default sheet name: `bug_book`
 
 Expected columns:
 
@@ -43,24 +165,15 @@ Expected columns:
 entry_date | score | creative_hours | social_hours | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
 ```
 
-## Apps Script setup
+If the `bug_book` tab is empty, the backend will add this header row
+automatically.
 
-1. Create a new Apps Script project.
-2. Copy the contents of `apps-script/Code.gs` into the project.
-3. Replace the generated `appsscript.json` with `apps-script/appsscript.json`.
-4. In Apps Script, open `Project Settings` and set these script properties:
-   - `SPREADSHEET_ID`
-   - `SHEET_NAME` (optional, defaults to `entries`)
-   - `EXPECTED_API_KEY`
-5. Deploy the script as a web app.
-6. Set execution access so your browser-hosted frontend can call it.
-7. Open the Bug Book settings page and save the deployed web app URL and
-   matching API key in your browser.
+### Apps Script request format
 
-The endpoint exposes:
+The web app supports:
 
-- `GET`: health message
-- `POST`: append a validated entry row
+- `GET` for a health check
+- `POST` for saving an entry
 
 Example request body:
 
@@ -81,36 +194,36 @@ Example request body:
 }
 ```
 
-## Local development
+### What is in this repo
 
-Because this repo is plain static HTML/CSS/JS, any local static file server will
-work. For example:
+- `index.html`, `settings.html`, `styles.css`: the static site
+- `app.js`, `settings.js`, `settings-store.js`: app behavior and saved settings
+- `manifest.webmanifest`, `sw.js`, `icons/`: installable PWA files
+- `apps-script/Code.gs`, `apps-script/appsscript.json`: the Google Apps Script backend
+- `design.md`: the original product notes
+
+### Security note
+
+This app stores the Apps Script URL and API key in browser local storage for the
+current device and site. That keeps them out of the repo, but it is not strong
+secret storage. Keep the Google Sheet private and treat this as personal,
+low-risk tooling.
+
+### Local development
+
+Because this repo is plain static HTML, CSS, and JavaScript, any local static
+file server will work. For example:
 
 ```bash
 python3 -m http.server 4173
 ```
 
 Then open [http://localhost:4173](http://localhost:4173).
-If setup has not been saved for that origin yet, open Settings and add the local
-endpoint URL and API key there.
 
-## GitHub Pages deployment
+### Manual acceptance checklist
 
-This repo is ready to publish as a static site from the repository root.
-
-1. Commit the frontend files to your default branch.
-2. Enable GitHub Pages for the repository and publish from the branch/root.
-3. Visit the deployed site, open Settings, and save the live Apps Script URL and
-   API key in that browser.
-4. Confirm the page loads over HTTPS and that the manifest and service worker
-   are being served successfully.
-
-## Manual acceptance checklist
-
-- Opening the app without saved settings shows a clear setup warning and a link
-  to Settings.
-- Saving settings in `settings.html` stores them locally and allows the main form
-  to submit.
+- Opening the app without saved settings shows a clear setup warning and a link to `Settings`.
+- Saving settings in `settings.html` stores them locally and allows the main form to submit.
 - The app opens to a single-screen form.
 - The date defaults to today in local time.
 - Score is limited to `+2`, `+1`, `0`, `-1`, `-2`.
