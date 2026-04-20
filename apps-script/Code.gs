@@ -3,6 +3,8 @@ var BUG_BOOK_HEADERS = [
   "score",
   "creative_minutes",
   "social_minutes",
+  "meditation_minutes",
+  "exercise_minutes",
   "day_description",
   "score_reason",
   "submitted_at_local",
@@ -219,6 +221,8 @@ function validateEntry_(payload) {
   var score = Number(payload.score);
   var creativeMinutes = Number(payload.creativeMinutes);
   var socialMinutes = Number(payload.socialMinutes);
+  var meditationMinutes = Number(payload.meditationMinutes);
+  var exerciseMinutes = Number(payload.exerciseMinutes);
   var dayDescription = stringOrEmpty_(payload.dayDescription).trim();
   var scoreReason = stringOrEmpty_(payload.scoreReason).trim();
   var submittedAtLocal = stringOrEmpty_(payload.submittedAtLocal);
@@ -243,6 +247,16 @@ function validateEntry_(payload) {
     throw new Error("Social minutes must be a non-negative number.");
   }
 
+  if (!isWholeNumberInRange_(meditationMinutes, 0, 60)) {
+    throw new Error("Meditation minutes must be between 0 and 60.");
+  }
+
+  if (!isWholeNumberInRange_(exerciseMinutes, 0, 6 * 60) || exerciseMinutes % 5 !== 0) {
+    throw new Error(
+      "Exercise minutes must be between 0 and 360 in 5-minute increments."
+    );
+  }
+
   if (!dayDescription) {
     throw new Error("Day description is required.");
   }
@@ -260,6 +274,8 @@ function validateEntry_(payload) {
     score: score,
     creativeMinutes: creativeMinutes,
     socialMinutes: socialMinutes,
+    meditationMinutes: meditationMinutes,
+    exerciseMinutes: exerciseMinutes,
     dayDescription: dayDescription,
     scoreReason: scoreReason,
     submittedAtLocal: submittedAtLocal,
@@ -349,6 +365,8 @@ function buildRow_(entry) {
     entry.score,
     entry.creativeMinutes,
     entry.socialMinutes,
+    entry.meditationMinutes,
+    entry.exerciseMinutes,
     entry.dayDescription,
     entry.scoreReason,
     entry.submittedAtLocal,
@@ -388,6 +406,16 @@ function isIsoTimestamp_(value) {
 
 function isNonNegativeNumber_(value) {
   return typeof value === "number" && isFinite(value) && value >= 0;
+}
+
+function isWholeNumberInRange_(value, minValue, maxValue) {
+  return (
+    typeof value === "number" &&
+    isFinite(value) &&
+    Math.floor(value) === value &&
+    value >= minValue &&
+    value <= maxValue
+  );
 }
 
 function stringOrEmpty_(value) {

@@ -2,8 +2,6 @@
   "use strict";
 
   var ALLOWED_SCORES = [2, 1, 0, -1, -2];
-  var MINUTE_STEP = 15;
-  var MAX_MINUTES = 12 * 60;
   var settingsStore = window.BugBookSettingsStore;
   var config = settingsStore.getAppConfig();
   var form = document.getElementById("entry-form");
@@ -12,6 +10,8 @@
   var entryDateInput = document.getElementById("entry-date");
   var creativeMinutesInput = document.getElementById("creative-hours");
   var socialMinutesInput = document.getElementById("social-hours");
+  var meditationMinutesInput = document.getElementById("meditation-minutes");
+  var exerciseMinutesInput = document.getElementById("exercise-minutes");
   var isSubmitting = false;
   var hasAppSetup = settingsStore.hasRequiredSettings(config);
 
@@ -101,7 +101,7 @@
     return parts.join(" ");
   }
 
-  function populateMinuteSelect(selectEl, placeholderLabel) {
+  function populateMinuteSelect(selectEl, placeholderLabel, stepMinutes, maxMinutes) {
     var fragment = document.createDocumentFragment();
     var placeholderOption = document.createElement("option");
 
@@ -111,8 +111,8 @@
 
     for (
       var totalMinutes = 0;
-      totalMinutes <= MAX_MINUTES;
-      totalMinutes += MINUTE_STEP
+      totalMinutes <= maxMinutes;
+      totalMinutes += stepMinutes
     ) {
       var option = document.createElement("option");
       option.value = String(totalMinutes);
@@ -164,6 +164,12 @@
       String(formData.get("creativeMinutes") || "")
     );
     var socialMinutes = parseMinutes(String(formData.get("socialMinutes") || ""));
+    var meditationMinutes = parseMinutes(
+      String(formData.get("meditationMinutes") || "")
+    );
+    var exerciseMinutes = parseMinutes(
+      String(formData.get("exerciseMinutes") || "")
+    );
 
     return {
       apiKey: config.apiKey,
@@ -171,6 +177,8 @@
       score: score,
       creativeMinutes: creativeMinutes,
       socialMinutes: socialMinutes,
+      meditationMinutes: meditationMinutes,
+      exerciseMinutes: exerciseMinutes,
       dayDescription: getTrimmed(formData, "dayDescription"),
       scoreReason: getTrimmed(formData, "scoreReason"),
       submittedAtLocal: getLocalTimestamp(),
@@ -200,6 +208,23 @@
 
     if (!Number.isFinite(payload.socialMinutes) || payload.socialMinutes < 0) {
       return "Social minutes must be a non-negative number.";
+    }
+
+    if (
+      !Number.isInteger(payload.meditationMinutes) ||
+      payload.meditationMinutes < 0 ||
+      payload.meditationMinutes > 60
+    ) {
+      return "Meditation minutes must be between 0 and 60.";
+    }
+
+    if (
+      !Number.isInteger(payload.exerciseMinutes) ||
+      payload.exerciseMinutes < 0 ||
+      payload.exerciseMinutes > 6 * 60 ||
+      payload.exerciseMinutes % 5 !== 0
+    ) {
+      return "Exercise minutes must be between 0 and 360 in 5-minute increments.";
     }
 
     if (!payload.dayDescription) {
@@ -356,8 +381,20 @@
   }
 
   function init() {
-    populateMinuteSelect(creativeMinutesInput, "Select creative minutes");
-    populateMinuteSelect(socialMinutesInput, "Select social minutes");
+    populateMinuteSelect(creativeMinutesInput, "Select creative minutes", 15, 12 * 60);
+    populateMinuteSelect(socialMinutesInput, "Select social minutes", 15, 12 * 60);
+    populateMinuteSelect(
+      meditationMinutesInput,
+      "Select meditation minutes",
+      1,
+      60
+    );
+    populateMinuteSelect(
+      exerciseMinutesInput,
+      "Select exercise minutes",
+      5,
+      6 * 60
+    );
     entryDateInput.value = getTodayLocalDate();
     form.addEventListener("submit", handleSubmit);
     registerServiceWorker();

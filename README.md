@@ -202,7 +202,7 @@ Default sheet name: `bug_book`
 Expected columns:
 
 ```text
-entry_date | score | creative_minutes | social_minutes | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
+entry_date | score | creative_minutes | social_minutes | meditation_minutes | exercise_minutes | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
 ```
 
 If the `bug_book` tab is empty, the backend will add this header row
@@ -227,6 +227,8 @@ Example request body:
   "score": -1,
   "creativeMinutes": 90,
   "socialMinutes": 30,
+  "meditationMinutes": 15,
+  "exerciseMinutes": 45,
   "dayDescription": "Low-energy day, but made some progress.",
   "scoreReason": "Tired and scattered, but still moved things forward.",
   "submittedAtLocal": "2026-04-18T09:14:52.000Z",
