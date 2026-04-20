@@ -2,12 +2,16 @@
   "use strict";
 
   var ALLOWED_SCORES = [2, 1, 0, -1, -2];
+  var MINUTE_STEP = 15;
+  var MAX_MINUTES = 12 * 60;
   var settingsStore = window.BugBookSettingsStore;
   var config = settingsStore.getAppConfig();
   var form = document.getElementById("entry-form");
   var statusEl = document.getElementById("status");
   var submitButton = document.getElementById("submit-button");
   var entryDateInput = document.getElementById("entry-date");
+  var creativeMinutesInput = document.getElementById("creative-hours");
+  var socialMinutesInput = document.getElementById("social-hours");
   var isSubmitting = false;
   var hasAppSetup = settingsStore.hasRequiredSettings(config);
 
@@ -73,12 +77,50 @@
     return String(formData.get(key) || "").trim();
   }
 
-  function parseHours(rawValue) {
+  function parseMinutes(rawValue) {
     if (rawValue === "") {
       return NaN;
     }
 
     return Number(rawValue);
+  }
+
+  function formatMinutesLabel(totalMinutes) {
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    var parts = [];
+
+    if (hours > 0) {
+      parts.push(hours + " hour" + (hours === 1 ? "" : "s"));
+    }
+
+    if (minutes > 0 || totalMinutes === 0) {
+      parts.push(minutes + " minute" + (minutes === 1 ? "" : "s"));
+    }
+
+    return parts.join(" ");
+  }
+
+  function populateMinuteSelect(selectEl, placeholderLabel) {
+    var fragment = document.createDocumentFragment();
+    var placeholderOption = document.createElement("option");
+
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholderLabel;
+    fragment.appendChild(placeholderOption);
+
+    for (
+      var totalMinutes = 0;
+      totalMinutes <= MAX_MINUTES;
+      totalMinutes += MINUTE_STEP
+    ) {
+      var option = document.createElement("option");
+      option.value = String(totalMinutes);
+      option.textContent = formatMinutesLabel(totalMinutes);
+      fragment.appendChild(option);
+    }
+
+    selectEl.replaceChildren(fragment);
   }
 
   function getLocalTimestamp() {
@@ -118,15 +160,17 @@
 
   function buildPayload(formData) {
     var score = Number(formData.get("score"));
-    var creativeHours = parseHours(String(formData.get("creativeHours") || ""));
-    var socialHours = parseHours(String(formData.get("socialHours") || ""));
+    var creativeMinutes = parseMinutes(
+      String(formData.get("creativeMinutes") || "")
+    );
+    var socialMinutes = parseMinutes(String(formData.get("socialMinutes") || ""));
 
     return {
       apiKey: config.apiKey,
       entryDate: String(formData.get("entryDate") || ""),
       score: score,
-      creativeHours: creativeHours,
-      socialHours: socialHours,
+      creativeMinutes: creativeMinutes,
+      socialMinutes: socialMinutes,
       dayDescription: getTrimmed(formData, "dayDescription"),
       scoreReason: getTrimmed(formData, "scoreReason"),
       submittedAtLocal: getLocalTimestamp(),
@@ -147,12 +191,15 @@
       return "Choose a score from +2, +1, 0, -1, or -2.";
     }
 
-    if (!Number.isFinite(payload.creativeHours) || payload.creativeHours < 0) {
-      return "Creative hours must be a non-negative number.";
+    if (
+      !Number.isFinite(payload.creativeMinutes) ||
+      payload.creativeMinutes < 0
+    ) {
+      return "Creative minutes must be a non-negative number.";
     }
 
-    if (!Number.isFinite(payload.socialHours) || payload.socialHours < 0) {
-      return "Social hours must be a non-negative number.";
+    if (!Number.isFinite(payload.socialMinutes) || payload.socialMinutes < 0) {
+      return "Social minutes must be a non-negative number.";
     }
 
     if (!payload.dayDescription) {
@@ -309,6 +356,8 @@
   }
 
   function init() {
+    populateMinuteSelect(creativeMinutesInput, "Select creative minutes");
+    populateMinuteSelect(socialMinutesInput, "Select social minutes");
     entryDateInput.value = getTodayLocalDate();
     form.addEventListener("submit", handleSubmit);
     registerServiceWorker();

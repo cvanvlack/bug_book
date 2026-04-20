@@ -1,8 +1,8 @@
 var BUG_BOOK_HEADERS = [
   "entry_date",
   "score",
-  "creative_hours",
-  "social_hours",
+  "creative_minutes",
+  "social_minutes",
   "day_description",
   "score_reason",
   "submitted_at_local",
@@ -217,8 +217,8 @@ function validateApiKey_(apiKey, expectedApiKey) {
 function validateEntry_(payload) {
   var entryDate = stringOrEmpty_(payload.entryDate);
   var score = Number(payload.score);
-  var creativeHours = Number(payload.creativeHours);
-  var socialHours = Number(payload.socialHours);
+  var creativeMinutes = Number(payload.creativeMinutes);
+  var socialMinutes = Number(payload.socialMinutes);
   var dayDescription = stringOrEmpty_(payload.dayDescription).trim();
   var scoreReason = stringOrEmpty_(payload.scoreReason).trim();
   var submittedAtLocal = stringOrEmpty_(payload.submittedAtLocal);
@@ -235,12 +235,12 @@ function validateEntry_(payload) {
     throw new Error("Invalid score.");
   }
 
-  if (!isNonNegativeNumber_(creativeHours)) {
-    throw new Error("Creative hours must be a non-negative number.");
+  if (!isNonNegativeNumber_(creativeMinutes)) {
+    throw new Error("Creative minutes must be a non-negative number.");
   }
 
-  if (!isNonNegativeNumber_(socialHours)) {
-    throw new Error("Social hours must be a non-negative number.");
+  if (!isNonNegativeNumber_(socialMinutes)) {
+    throw new Error("Social minutes must be a non-negative number.");
   }
 
   if (!dayDescription) {
@@ -258,8 +258,8 @@ function validateEntry_(payload) {
   return {
     entryDate: entryDate,
     score: score,
-    creativeHours: creativeHours,
-    socialHours: socialHours,
+    creativeMinutes: creativeMinutes,
+    socialMinutes: socialMinutes,
     dayDescription: dayDescription,
     scoreReason: scoreReason,
     submittedAtLocal: submittedAtLocal,
@@ -347,8 +347,8 @@ function buildRow_(entry) {
   return [
     entry.entryDate,
     entry.score,
-    entry.creativeHours,
-    entry.socialHours,
+    entry.creativeMinutes,
+    entry.socialMinutes,
     entry.dayDescription,
     entry.scoreReason,
     entry.submittedAtLocal,

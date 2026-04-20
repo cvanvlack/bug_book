@@ -131,25 +131,27 @@ Preferred UI:
 * segmented control / pill buttons / radio group
 * not free text
 
-6.3 Creative hours
+6.3 Creative minutes
 
-* numeric field
+* dropdown field
 * required
-* allow decimals
+* 15 minute increments
 * minimum 0
+* maximum 12 hours
 
 Examples:
 
-* 0
-* 1
-* 2.5
+* 0 minutes
+* 1 hour
+* 2 hours 30 minutes
 
-6.4 Social hours
+6.4 Social minutes
 
-* numeric field
+* dropdown field
 * required
-* allow decimals
+* 15 minute increments
 * minimum 0
+* maximum 12 hours
 
 6.5 Brief description of the day
 
@@ -189,10 +191,10 @@ Each row in Google Sheets should contain:
     * one of 2, 1, 0, -1, -2 or string forms +2, +1, 0, -1, -2
     * pick one canonical format and keep it consistent
     * recommendation: store as numeric values 2, 1, 0, -1, -2
-3. creative_hours
-    * decimal number
-4. social_hours
-    * decimal number
+3. creative_minutes
+    * integer number of minutes
+4. social_minutes
+    * integer number of minutes
 5. day_description
     * text
 6. score_reason
@@ -224,7 +226,7 @@ Tab name: entries
 
 Header row:
 
-entry_date | score | creative_hours | social_hours | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
+entry_date | score | creative_minutes | social_minutes | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
 
 Behavior:
 
@@ -245,8 +247,8 @@ Before submit:
 
 * entry_date required and valid
 * score required and must be one of allowed values
-* creative_hours required, numeric, >= 0
-* social_hours required, numeric, >= 0
+* creative_minutes required, numeric, >= 0
+* social_minutes required, numeric, >= 0
 * day_description required, non-empty after trim
 * score_reason required, non-empty after trim
 
@@ -380,8 +382,8 @@ Suggested labels
 
 * Date
 * Score
-* Creative hours
-* Social hours
+* Creative minutes
+* Social minutes
 * Brief description
 * Why this score?
 
@@ -427,8 +429,8 @@ Example request body:
   "apiKey": "YOUR_SHARED_SECRET",
   "entryDate": "2026-04-17",
   "score": -1,
-  "creativeHours": 1.5,
-  "socialHours": 0.5,
+  "creativeMinutes": 90,
+  "socialMinutes": 30,
   "dayDescription": "Low-energy day, but made some progress.",
   "scoreReason": "Tired and scattered, but still moved things forward.",
   "submittedAtLocal": "2026-04-18T09:14:52-04:00",
