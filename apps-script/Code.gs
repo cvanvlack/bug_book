@@ -22,28 +22,43 @@ function doGet(e) {
 }
 
 function doPost(e) {
+  var payload = null;
+  var entry = null;
+  var submissionId = "unparsed";
+
   try {
     var settings = getSettings_();
-    var payload = parsePayload_(e);
+    payload = parsePayload_(e);
+    submissionId = stringOrEmpty_(payload.submissionId) || "missing";
 
     validateApiKey_(payload.apiKey, settings.expectedApiKey);
 
-    var entry = validateEntry_(payload);
+    entry = validateEntry_(payload);
+    logSaveEvent_("started", entry, "");
+
     var sheet = getSheet_(settings.spreadsheetId, settings.sheetName);
     ensureHeaders_(sheet);
 
     sheet.appendRow(buildRow_(entry));
+    SpreadsheetApp.flush();
+
+    var savedRow = sheet.getLastRow();
+
+    logSaveEvent_("saved", entry, "row=" + savedRow);
 
     return jsonResponse_({
       ok: true,
       message: "Saved entry",
       entryDate: entry.entryDate,
+      submissionId: entry.submissionId,
+      row: savedRow,
     });
   } catch (error) {
-    logError_(error);
+    logError_(error, submissionId, entry);
     return jsonResponse_({
       ok: false,
       message: error.message || "Unexpected server error.",
+      submissionId: submissionId,
     });
   }
 }
@@ -217,6 +232,7 @@ function validateApiKey_(apiKey, expectedApiKey) {
 }
 
 function validateEntry_(payload) {
+  var submissionId = stringOrEmpty_(payload.submissionId) || "missing";
   var entryDate = stringOrEmpty_(payload.entryDate);
   var score = Number(payload.score);
   var creativeMinutes = Number(payload.creativeMinutes);
@@ -270,6 +286,7 @@ function validateEntry_(payload) {
   }
 
   return {
+    submissionId: submissionId,
     entryDate: entryDate,
     score: score,
     creativeMinutes: creativeMinutes,
@@ -479,7 +496,30 @@ function getFirstFailingMessage_(diagnostics, checkOrder) {
   return "";
 }
 
-function logError_(error) {
+function logSaveEvent_(eventName, entry, detail) {
+  console.log(
+    JSON.stringify({
+      app: "BugBook",
+      event: eventName,
+      submissionId: entry.submissionId,
+      entryDate: entry.entryDate,
+      source: entry.source,
+      apiVersion: entry.apiVersion,
+      detail: detail || "",
+    })
+  );
+}
+
+function logError_(error, submissionId, entry) {
   console.error(error);
   Logger.log(error && error.stack ? error.stack : error);
+  console.log(
+    JSON.stringify({
+      app: "BugBook",
+      event: "failed",
+      submissionId: submissionId || "unknown",
+      entryDate: entry ? entry.entryDate : "",
+      message: error && error.message ? error.message : String(error),
+    })
+  );
 }

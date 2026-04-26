@@ -158,6 +158,15 @@
     );
   }
 
+  function createSubmissionId() {
+    return (
+      "bb-" +
+      Date.now().toString(36) +
+      "-" +
+      Math.random().toString(36).slice(2, 8)
+    );
+  }
+
   function buildPayload(formData) {
     var score = Number(formData.get("score"));
     var creativeMinutes = parseMinutes(
@@ -173,6 +182,7 @@
 
     return {
       apiKey: config.apiKey,
+      submissionId: createSubmissionId(),
       entryDate: String(formData.get("entryDate") || ""),
       score: score,
       creativeMinutes: creativeMinutes,
@@ -188,6 +198,75 @@
       userAgent: navigator.userAgent,
       source: config.source,
     };
+  }
+
+  function createSaveError(message, details) {
+    var error = new Error(message);
+    Object.assign(error, details || {});
+    return error;
+  }
+
+  function formatHttpStatus(error) {
+    if (!error.httpStatus) {
+      return "";
+    }
+
+    return " HTTP status: " + error.httpStatus + ".";
+  }
+
+  function formatSaveErrorMessage(error, submissionId) {
+    var traceText = " Trace ID: " + submissionId + ".";
+
+    if (error.name === "AbortError") {
+      return (
+        "Bug Book could not confirm whether the entry saved before the 45-second request timeout. Check your sheet before retrying to avoid duplicates." +
+        traceText
+      );
+    }
+
+    if (error.code === "NETWORK") {
+      return (
+        "Could not reach the Apps Script endpoint. Check your connection, endpoint URL, deployment permissions, and browser Network tab." +
+        traceText
+      );
+    }
+
+    if (error.code === "EMPTY_RESPONSE") {
+      return (
+        "Apps Script returned an empty response." +
+        formatHttpStatus(error) +
+        " Check Apps Script executions for this trace before retrying." +
+        traceText
+      );
+    }
+
+    if (error.code === "INVALID_JSON") {
+      return (
+        "Apps Script returned a response Bug Book could not read as JSON." +
+        formatHttpStatus(error) +
+        " Check the deployment URL and Apps Script executions for this trace." +
+        traceText
+      );
+    }
+
+    return (
+      (error.message ||
+        "Could not save entry. Please check your connection and try again.") +
+      formatHttpStatus(error) +
+      traceText
+    );
+  }
+
+  function getSaveStatusType(error) {
+    if (
+      error.name === "AbortError" ||
+      error.code === "EMPTY_RESPONSE" ||
+      error.code === "INVALID_JSON"
+    ) {
+      return "warning";
+    }
+
+    return "error";
   }
 
   function validatePayload(payload) {
@@ -300,7 +379,15 @@
     }
 
     setSubmitting(true);
-    setStatus("Saving entry...", "neutral");
+    setStatus(
+      "Saving entry... This can take up to 45 seconds. Trace ID: " +
+        payload.submissionId +
+        ".",
+      "neutral",
+      {
+        scrollIntoView: true,
+      }
+    );
 
     try {
       var result = await settingsStore.requestJson(
@@ -318,51 +405,35 @@
       var responseBody = result.body;
 
       if (!response.ok || !responseBody.ok) {
-        throw new Error(
-          responseBody.message ||
-            "The sheet endpoint rejected this request."
+        throw createSaveError(
+          responseBody.message || "The sheet endpoint rejected this request.",
+          {
+            httpStatus: response.status,
+            submissionId: responseBody.submissionId || payload.submissionId,
+          }
         );
       }
 
       resetForm();
       setStatus(
-        "Saved entry for " + (responseBody.entryDate || payload.entryDate) + ".",
+        "Saved entry for " +
+          (responseBody.entryDate || payload.entryDate) +
+          ". Trace ID: " +
+          (responseBody.submissionId || payload.submissionId) +
+          ".",
         "success",
         {
           scrollIntoView: true,
         }
       );
     } catch (error) {
-      if (error.name === "AbortError") {
-        setStatus(
-          "Bug Book could not confirm whether the entry saved before the request timed out. Check your sheet before retrying to avoid duplicates.",
-          "warning",
-          {
-            scrollIntoView: true,
-          }
-        );
-      } else if (
-        error.code === "NETWORK" ||
-        error.code === "EMPTY_RESPONSE" ||
-        error.code === "INVALID_JSON"
-      ) {
-        setStatus(
-          "Bug Book could not confirm whether the entry saved. Check your sheet before retrying to avoid duplicates.",
-          "warning",
-          {
-            scrollIntoView: true,
-          }
-        );
-      } else {
-        setStatus(
-          error.message ||
-            "Could not save entry. Please check your connection and try again.",
-          "error",
-          {
-            scrollIntoView: true,
-          }
-        );
-      }
+      setStatus(
+        formatSaveErrorMessage(error, payload.submissionId),
+        getSaveStatusType(error),
+        {
+          scrollIntoView: true,
+        }
+      );
     } finally {
       setSubmitting(false);
     }

@@ -8,7 +8,7 @@
     apiVersion: "v1",
     source: "pwa",
     appName: "Bug Book",
-    requestTimeoutMs: 15000,
+    requestTimeoutMs: 45000,
   };
 
   function normalizeStoredSettings(rawSettings) {
@@ -41,9 +41,10 @@
     }
   }
 
-  function createRequestError(code, message) {
+  function createRequestError(code, message, details) {
     var error = new Error(message);
     error.code = code;
+    Object.assign(error, details || {});
     return error;
   }
 
@@ -173,7 +174,10 @@
     if (!responseText) {
       throw createRequestError(
         "EMPTY_RESPONSE",
-        "The Bug Book endpoint returned an empty response."
+        "The Bug Book endpoint returned an empty response.",
+        {
+          httpStatus: response.status,
+        }
       );
     }
 
@@ -185,7 +189,11 @@
     } catch (error) {
       throw createRequestError(
         "INVALID_JSON",
-        "The Bug Book endpoint returned invalid JSON."
+        "The Bug Book endpoint returned invalid JSON.",
+        {
+          httpStatus: response.status,
+          responseText: responseText.slice(0, 200),
+        }
       );
     }
   }
