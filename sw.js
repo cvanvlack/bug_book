@@ -1,4 +1,4 @@
-const CACHE_NAME = "bug-book-v2";
+const CACHE_NAME = "bug-book-v3";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",

@@ -235,10 +235,10 @@ function validateEntry_(payload) {
   var submissionId = stringOrEmpty_(payload.submissionId) || "missing";
   var entryDate = stringOrEmpty_(payload.entryDate);
   var score = Number(payload.score);
-  var creativeMinutes = Number(payload.creativeMinutes);
-  var socialMinutes = Number(payload.socialMinutes);
-  var meditationMinutes = Number(payload.meditationMinutes);
-  var exerciseMinutes = Number(payload.exerciseMinutes);
+  var creativeMinutes = numberFromPayload_(payload, "creativeMinutes");
+  var socialMinutes = numberFromPayload_(payload, "socialMinutes");
+  var meditationMinutes = numberFromPayload_(payload, "meditationMinutes");
+  var exerciseMinutes = numberFromPayload_(payload, "exerciseMinutes");
   var dayDescription = stringOrEmpty_(payload.dayDescription).trim();
   var scoreReason = stringOrEmpty_(payload.scoreReason).trim();
   var submittedAtLocal = stringOrEmpty_(payload.submittedAtLocal);
@@ -433,6 +433,16 @@ function isWholeNumberInRange_(value, minValue, maxValue) {
     value >= minValue &&
     value <= maxValue
   );
+}
+
+function numberFromPayload_(payload, key) {
+  var value = payload[key];
+
+  if (value === null || value === undefined || value === "") {
+    return NaN;
+  }
+
+  return Number(value);
 }
 
 function stringOrEmpty_(value) {

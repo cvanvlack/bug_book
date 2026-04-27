@@ -77,12 +77,24 @@
     return String(formData.get(key) || "").trim();
   }
 
+  function getFormValue(formData, key) {
+    var value = formData.get(key);
+
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    return String(value);
+  }
+
   function parseMinutes(rawValue) {
-    if (rawValue === "") {
+    var value = String(rawValue).trim();
+
+    if (value === "") {
       return NaN;
     }
 
-    return Number(rawValue);
+    return Number(value);
   }
 
   function formatMinutesLabel(totalMinutes) {
@@ -169,21 +181,17 @@
 
   function buildPayload(formData) {
     var score = Number(formData.get("score"));
-    var creativeMinutes = parseMinutes(
-      String(formData.get("creativeMinutes") || "")
-    );
-    var socialMinutes = parseMinutes(String(formData.get("socialMinutes") || ""));
+    var creativeMinutes = parseMinutes(getFormValue(formData, "creativeMinutes"));
+    var socialMinutes = parseMinutes(getFormValue(formData, "socialMinutes"));
     var meditationMinutes = parseMinutes(
-      String(formData.get("meditationMinutes") || "")
+      getFormValue(formData, "meditationMinutes")
     );
-    var exerciseMinutes = parseMinutes(
-      String(formData.get("exerciseMinutes") || "")
-    );
+    var exerciseMinutes = parseMinutes(getFormValue(formData, "exerciseMinutes"));
 
     return {
       apiKey: config.apiKey,
       submissionId: createSubmissionId(),
-      entryDate: String(formData.get("entryDate") || ""),
+      entryDate: getFormValue(formData, "entryDate"),
       score: score,
       creativeMinutes: creativeMinutes,
       socialMinutes: socialMinutes,
