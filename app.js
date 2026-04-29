@@ -120,6 +120,9 @@
 
     placeholderOption.value = "";
     placeholderOption.textContent = placeholderLabel;
+    placeholderOption.disabled = true;
+    placeholderOption.hidden = true;
+    placeholderOption.selected = true;
     fragment.appendChild(placeholderOption);
 
     for (
