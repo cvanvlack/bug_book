@@ -202,7 +202,7 @@ Default sheet name: `bug_book`
 Expected columns:
 
 ```text
-entry_date | score | creative_minutes | social_minutes | meditation_minutes | exercise_minutes | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
+entry_date | score | creative_minutes | social_minutes | meditation_minutes | exercise_minutes | outdoor_minutes | day_description | score_reason | submitted_at_local | client_timezone | received_at_script | api_version | user_agent | source
 ```
 
 If the `bug_book` tab is empty, the backend will add this header row
@@ -229,6 +229,7 @@ Example request body:
   "socialMinutes": 30,
   "meditationMinutes": 15,
   "exerciseMinutes": 45,
+  "outdoorMinutes": 480,
   "dayDescription": "Low-energy day, but made some progress.",
   "scoreReason": "Tired and scattered, but still moved things forward.",
   "submittedAtLocal": "2026-04-18T09:14:52.000Z",
@@ -273,7 +274,7 @@ Then open [http://localhost:4173](http://localhost:4173).
 - The app opens to a single-screen form.
 - The date defaults to today in local time.
 - Score is limited to `+2`, `+1`, `0`, `-1`, `-2`.
-- Hours accept only non-negative numeric values.
+- Creative and social minutes accept non-negative values, outdoor minutes allows 0 to 1440 in 15-minute increments, meditation stays 0 to 60, and exercise stays 0 to 360 in 5-minute increments.
 - Description and score reason are required.
 - Failed submissions keep the form data intact.
 - Successful submissions clear the form, mention the saved date, and scroll the success state into view.

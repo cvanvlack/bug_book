@@ -5,6 +5,7 @@ var BUG_BOOK_HEADERS = [
   "social_minutes",
   "meditation_minutes",
   "exercise_minutes",
+  "outdoor_minutes",
   "day_description",
   "score_reason",
   "submitted_at_local",
@@ -239,6 +240,7 @@ function validateEntry_(payload) {
   var socialMinutes = numberFromPayload_(payload, "socialMinutes");
   var meditationMinutes = numberFromPayload_(payload, "meditationMinutes");
   var exerciseMinutes = numberFromPayload_(payload, "exerciseMinutes");
+  var outdoorMinutes = numberFromPayload_(payload, "outdoorMinutes");
   var dayDescription = stringOrEmpty_(payload.dayDescription).trim();
   var scoreReason = stringOrEmpty_(payload.scoreReason).trim();
   var submittedAtLocal = stringOrEmpty_(payload.submittedAtLocal);
@@ -273,6 +275,15 @@ function validateEntry_(payload) {
     );
   }
 
+  if (
+    !isWholeNumberInRange_(outdoorMinutes, 0, 24 * 60) ||
+    outdoorMinutes % 15 !== 0
+  ) {
+    throw new Error(
+      "Outdoor minutes must be between 0 and 1440 in 15-minute increments."
+    );
+  }
+
   if (!dayDescription) {
     throw new Error("Day description is required.");
   }
@@ -293,6 +304,7 @@ function validateEntry_(payload) {
     socialMinutes: socialMinutes,
     meditationMinutes: meditationMinutes,
     exerciseMinutes: exerciseMinutes,
+    outdoorMinutes: outdoorMinutes,
     dayDescription: dayDescription,
     scoreReason: scoreReason,
     submittedAtLocal: submittedAtLocal,
@@ -384,6 +396,7 @@ function buildRow_(entry) {
     entry.socialMinutes,
     entry.meditationMinutes,
     entry.exerciseMinutes,
+    entry.outdoorMinutes,
     entry.dayDescription,
     entry.scoreReason,
     entry.submittedAtLocal,
