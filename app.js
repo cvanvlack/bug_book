@@ -12,6 +12,7 @@
   var socialMinutesInput = document.getElementById("social-hours");
   var meditationMinutesInput = document.getElementById("meditation-minutes");
   var exerciseMinutesInput = document.getElementById("exercise-minutes");
+  var outdoorMinutesInput = document.getElementById("outdoor-minutes");
   var isSubmitting = false;
   var hasAppSetup = settingsStore.hasRequiredSettings(config);
 
@@ -119,6 +120,9 @@
 
     placeholderOption.value = "";
     placeholderOption.textContent = placeholderLabel;
+    placeholderOption.disabled = true;
+    placeholderOption.hidden = true;
+    placeholderOption.selected = true;
     fragment.appendChild(placeholderOption);
 
     for (
@@ -187,6 +191,7 @@
       getFormValue(formData, "meditationMinutes")
     );
     var exerciseMinutes = parseMinutes(getFormValue(formData, "exerciseMinutes"));
+    var outdoorMinutes = parseMinutes(getFormValue(formData, "outdoorMinutes"));
 
     return {
       apiKey: config.apiKey,
@@ -197,6 +202,7 @@
       socialMinutes: socialMinutes,
       meditationMinutes: meditationMinutes,
       exerciseMinutes: exerciseMinutes,
+      outdoorMinutes: outdoorMinutes,
       dayDescription: getTrimmed(formData, "dayDescription"),
       scoreReason: getTrimmed(formData, "scoreReason"),
       submittedAtLocal: getLocalTimestamp(),
@@ -312,6 +318,15 @@
       payload.exerciseMinutes % 5 !== 0
     ) {
       return "Exercise minutes must be between 0 and 360 in 5-minute increments.";
+    }
+
+    if (
+      !Number.isInteger(payload.outdoorMinutes) ||
+      payload.outdoorMinutes < 0 ||
+      payload.outdoorMinutes > 24 * 60 ||
+      payload.outdoorMinutes % 15 !== 0
+    ) {
+      return "Outdoor minutes must be between 0 and 1440 in 15-minute increments.";
     }
 
     if (!payload.dayDescription) {
@@ -473,6 +488,12 @@
       "Select exercise minutes",
       5,
       6 * 60
+    );
+    populateMinuteSelect(
+      outdoorMinutesInput,
+      "Select outdoor minutes",
+      15,
+      24 * 60
     );
     entryDateInput.value = getTodayLocalDate();
     form.addEventListener("submit", handleSubmit);
